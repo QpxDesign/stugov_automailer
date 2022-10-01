@@ -4,8 +4,7 @@ import time
 from requests_html import HTMLSession
 from ics import Calendar, Event
 import re
-import win32com.client as win32
-import os
+from redmail import EmailSender
 
 session = HTMLSession()
 
@@ -84,20 +83,19 @@ for team in TeamCalendarData:
 PROGRAM_END_TIME = time.time()
 
 #send formated emails
-outlook = win32.Dispatch('outlook.application')
-mail = outlook.CreateItem(0)
-mail.Subject = f'Better Daily Email - {datetime.datetime.today().weekday()}'
-mail.To = "qroshan5@gmail.com"
-mail.HTMLBody = rf"""
-Dear Upper School,<br><br>
-Today's <span style="color:blue">LUNCH</span> is:<br><br>
-<strong>{todaysLunch}</strong><br><br>
-Todays Athletic Events:<br>
-{todaysEvents[0]}
-"""
-
-mail.Send()
+email = EmailSender(
+    host='localhost',
+    port=0,
+    username='quinnposter@outlook.com',
+    password='B$jHX7E4!fJn&@xp'
+)
+email.send(
+    subject=f'Better Daily Email - {datetime.datetime.today().weekday()}',
+    sender="quinnposter@outlook.com",
+    receivers=['qroshan5@gmail.com'],
+    text="!",
+    html=f"<p>Dear Upper School,<br><br>>Today's <span style='color:blue'>LUNCH</span> is:<br><br></p><strong>{todaysLunch}</strong><br><br>Todays Athletic Events:<br>{todaysEvents[0]}"
+)
 
 print(f'Process Completed - Runtime: {round(PROGRAM_END_TIME-PROGRAM_START_TIME,2)} seconds')
 
-# pip install pypiwin32
