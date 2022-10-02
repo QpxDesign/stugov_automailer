@@ -8,24 +8,28 @@ from redmail import EmailSender
 
 session = HTMLSession()
 
-#start timer
+# start timer
 PROGRAM_START_TIME = time.time()
 
 # Find Lunch Menu for current day
+
+
 def DateToDaysSince():
-    d0 = date(2022, 9, 30) # First Valid Menu Day
+    d0 = date(2022, 9, 30)  # First Valid Menu Day
     d1 = date(date.today().year, date.today().month, date.today().day)
     delta = d1 - d0
     return delta.days
+
 
 c = 76061456 + DateToDaysSince()
 
 todaysLunch = ""
 try:
-    r = session.get(f'https://www.sidwell.edu/fs/elements/8133?occur_id={c}&show_event=true&is_draft=false&_=1664648774780')
-    menu = r.html.find(".fsDescription",first=True)
+    r = session.get(
+        f'https://www.sidwell.edu/fs/elements/8133?occur_id={c}&show_event=true&is_draft=false&_=1664648774780')
+    menu = r.html.find(".fsDescription", first=True)
     menuDate = r.html.find(".fsDate", first=True)
-    todaysLunch = (menu.text)
+    todaysLunch = (menu.text).replace("\n", "<br>")
 except:
     todaysLunch = "No Valid Menu Found For Today"
 
@@ -71,31 +75,30 @@ TeamCalendarData = [
     "https://www.sidwell.edu/calendar/team_289.ics"
 ]
 
-todaysEvents = []
+todaysEvents = ""
 for team in TeamCalendarData:
     TeamCal = Calendar(requests.get(team).text)
     TeamCalEvents = str(TeamCal.events).split(",")
     for event in TeamCalEvents:
         d = str(date.today())
         if re.search(d, event):
-            todaysEvents.append(re.findall("(?<=\')(.*?)(?=\')",event)[0])
+            todaysEvents += re.findall("(?<=\')(.*?)(?=\')", event)[0] + "<br>"
 
-PROGRAM_END_TIME = time.time()
-
-#send formated emails
+# send formated emails
 email = EmailSender(
-    host='localhost',
-    port=0,
+    host='smtp-mail.outlook.com.',
+    port=587,
     username='quinnposter@outlook.com',
     password='B$jHX7E4!fJn&@xp'
 )
 email.send(
-    subject=f'Better Daily Email - {datetime.datetime.today().weekday()}',
+    subject=f'Better Daily Email - {date.today()}',
     sender="quinnposter@outlook.com",
     receivers=['qroshan5@gmail.com'],
     text="!",
-    html=f"<p>Dear Upper School,<br><br>>Today's <span style='color:blue'>LUNCH</span> is:<br><br></p><strong>{todaysLunch}</strong><br><br>Todays Athletic Events:<br>{todaysEvents[0]}"
+    html=f"<h1 style='font-size: 18pt; font-family: Arial, Helvetica, sans-serif'> Hello Upper School, </h1> <h2 style=' font-size: 18pt; font-family: Arial, Helvetica, sans-serif; color: red; margin-bottom: 5px; font-weight: 500; ' > Todays Lunch Is: </h2> <p style=' font-size: 18pt; font-family: Arial, Helvetica, sans-serif; margin-top: 0; '> {todaysLunch} </p><h2 style=' color: blue; font-size: 18pt; font-family: Arial, Helvetica, sans-serif; margin-bottom: 5px; font-weight: 500; ' > Athletic Events: </h2> <p style=' font-size: 18pt; font-family: Arial, Helvetica, sans-serif; margin-top: 0; ' > {todaysEvents} </p> <h1 style='font-size: 18pt; font-family: Arial, Helvetica, sans-serif'> From StuGov </h1>"
 )
 
-print(f'Process Completed - Runtime: {round(PROGRAM_END_TIME-PROGRAM_START_TIME,2)} seconds')
-
+PROGRAM_END_TIME = time.time()
+print(
+    f'Process Completed - Runtime: {round(PROGRAM_END_TIME-PROGRAM_START_TIME,2)} seconds')
